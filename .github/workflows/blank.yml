@@ -1,1 +1,48 @@
-https://chatgpt.com/backend-api/estuary/content?id=file_00000000fe4c8210a1cfd79a1543a150&fn=blank.yml&cd=attachment&ts=497566&p=fs&cid=1&sig=2e25f5179ecab22bfa59e3614b5dc712ab8f24da9a0205d26181a256c064ac05&v=0
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Descomprimir proyecto
+        run: |
+          mkdir android-project
+          unzip -q Cifrarchat1-project.zip -d android-project
+
+      - name: Buscar proyecto Android
+        id: project
+        run: |
+          SETTINGS=$(find android-project -type f \( -name settings.gradle -o -name settings.gradle.kts \) | head -1)
+          test -n "$SETTINGS"
+          DIR=$(dirname "$SETTINGS")
+          echo "dir=$DIR" >> "$GITHUB_OUTPUT"
+
+      - name: Compilar APK
+        working-directory: ${{ steps.project.outputs.dir }}
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Subir APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: CifraChat1-APK
+          path: android-project/**/*.apk
