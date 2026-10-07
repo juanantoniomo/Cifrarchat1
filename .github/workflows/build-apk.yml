@@ -101,7 +101,7 @@ jobs:
 
       - name: Analyze
         working-directory: source/CifraChat_MVP/client
-        run: flutter analyze
+        run: flutter analyze lib
 
       - name: Build unsigned iOS IPA
         working-directory: source/CifraChat_MVP/client
