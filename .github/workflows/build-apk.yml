@@ -99,15 +99,17 @@ jobs:
         working-directory: source/CifraChat_MVP/client
         run: flutter pub get
 
-
-      - name: Build unsigned iOS IPA
+      - name: Build unsigned iOS archive
         working-directory: source/CifraChat_MVP/client
         run: flutter build ipa --release --no-codesign
+
+      - name: Package unsigned Xcode archive
+        run: tar -czf CifraChat-iOS-unsigned.xcarchive.tar.gz -C source/CifraChat_MVP/client/build/ios/archive Runner.xcarchive
 
       - name: Upload unsigned iOS build
         uses: actions/upload-artifact@v6
         with:
           name: CifraChat-iOS-unsigned
-          path: source/CifraChat_MVP/client/build/ios/ipa/*.ipa
+          path: CifraChat-iOS-unsigned.xcarchive.tar.gz
           if-no-files-found: error
           retention-days: 30
