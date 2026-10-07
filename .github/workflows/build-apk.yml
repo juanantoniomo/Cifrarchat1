@@ -1,4 +1,4 @@
-name: Build CifraChat APK
+name: Build CifraChat Android + iOS
 
 on:
   push:
@@ -70,5 +70,47 @@ jobs:
         with:
           name: CifraChat-APK
           path: CifraChat.apk
+          if-no-files-found: error
+          retention-days: 30
+
+  build-ios:
+    name: Build iOS (unsigned)
+    runs-on: macos-15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Extract Flutter app from ZIP
+        run: |
+          unzip -oq CifraChat_MVP_mobile_build.zip -d source
+          test -f source/CifraChat_MVP/client/pubspec.yaml
+
+      - name: Generate iOS project
+        working-directory: source/CifraChat_MVP/client
+        run: flutter create . --platforms=ios --project-name cifra_chat --org com.cifrachat
+
+      - name: Resolve Flutter packages
+        working-directory: source/CifraChat_MVP/client
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: source/CifraChat_MVP/client
+        run: flutter analyze
+
+      - name: Build unsigned iOS IPA
+        working-directory: source/CifraChat_MVP/client
+        run: flutter build ipa --release --no-codesign
+
+      - name: Upload unsigned iOS build
+        uses: actions/upload-artifact@v6
+        with:
+          name: CifraChat-iOS-unsigned
+          path: source/CifraChat_MVP/client/build/ios/ipa/*.ipa
           if-no-files-found: error
           retention-days: 30
